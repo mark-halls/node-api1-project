@@ -9,7 +9,16 @@ const server = express();
 server.use(express.json());
 
 // get users at /api/users
-server.get(`/api/users`, (req, res) => {});
+server.get(`/api/users`, (req, res) => {
+  db.find()
+    .then(user => res.status(200).json(user))
+    .catch(err => {
+      console.error(`error on GET /api/users`, err);
+      res.status(500).json({
+        errorMessage: `error getting list of users from the database`
+      });
+    });
+});
 
 // get user by id at at /api/users/:id
 server.get(`/api/users/:id`, (req, res) => {});
