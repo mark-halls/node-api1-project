@@ -21,7 +21,18 @@ server.get(`/api/users`, (req, res) => {
 });
 
 // get user by id at at /api/users/:id
-server.get(`/api/users/:id`, (req, res) => {});
+server.get(`/api/users/:id`, (req, res) => {
+  const id = req.params.id;
+
+  db.findById(id)
+    .then(user => res.status(200).json(user))
+    .catch(err => {
+      console.error(`error on GET /api/users/:id`, err);
+      res.status(500).json({
+        errorMessage: `error getting user with id ${id} from the database`
+      });
+    });
+});
 
 // add new user at /api/users
 server.post(`/api/users`, (req, res) => {});
