@@ -1,7 +1,7 @@
 // implement your API here
-const express = require("express");
+const express = require(`express`);
 
-const db = require("./data/db");
+const db = require(`./data/db`);
 
 const port = 4000;
 
@@ -31,7 +31,7 @@ server.get(`/api/users/:id`, (req, res) => {
       } else {
         res
           .status(404)
-          .json({ message: "The user with the specified ID does not exist." });
+          .json({ message: `The user with the specified ID does not exist.` });
       }
     })
     .catch(err => {
@@ -49,23 +49,69 @@ server.post(`/api/users`, (req, res) => {
   if (!(req.body.name && req.body.bio)) {
     res
       .status(400)
-      .json({ errorMessage: "Please provide name and bio for the user." });
+      .json({ errorMessage: `Please provide name and bio for the user.` });
   } else {
     db.insert(userData)
       .then(user => res.status(201).json(user))
       .catch(err => {
         console.error(`error on POST /api/users`, err);
         res.status(500).json({
-          error: "There was an error while saving the user to the database"
+          error: `There was an error while saving the user to the database`
         });
       });
   }
 });
 
 // delete user by id at /api/users/:id
-server.delete(`/api/users/:id`, (req, res) => {});
+server.delete(`/api/users/:id`, (req, res) => {
+  const id = req.params.id;
+
+  db.remove(id)
+    .then(user => {
+      if (user) {
+        res.status(200).json({ message: `user id ${id} removed successfully` });
+      } else {
+        res
+          .status(404)
+          .json({ message: `The user with the specified ID does not exist.` });
+      }
+    })
+    .catch(err => {
+      console.error(`error on POST /api/users`, err);
+      res.status(500).json({
+        error: `There was an error while removing the user from the database`
+      });
+    });
+});
 
 // update user at /api/users/:id
-server.put(`/api/users/:id`, (req, res) => {});
+server.put(`/api/users/:id`, (req, res) => {
+  const id = req.params.id;
+  const userData = req.body;
+
+  if (userData.bio && userData.name) {
+    db.findById(id)
+      .then(() =>
+        db
+          .update(id, userData)
+          .then(user => res.status(200).json({ id, ...userData }))
+          .catch(err => {
+            console.error(`error on PUT /api/users/:id`, err);
+            res.status(500).json({
+              error: `The user information could not be modified.`
+            });
+          })
+      )
+      .catch(() =>
+        res
+          .status(404)
+          .json({ message: `The user with the specified ID does not exist.` })
+      );
+  } else {
+    res
+      .status(400)
+      .json({ errorMessage: `Please provide name and bio for the user.` });
+  }
+});
 
 server.listen(port, () => console.log(`\n **API running on port ${port}** \n`));
